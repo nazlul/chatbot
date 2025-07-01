@@ -14,20 +14,26 @@ app = FastAPI()
 
 @app.post("/webhook")
 async def webhook(request: Request):
-    form = await request.form()
-    from_number = form.get("From")
-    message = form.get("Body")
+    try:
+        form = await request.form()
+        from_number = form.get("From")
+        message = form.get("Body")
 
-    print(f"📩 Message from {from_number}: {message}")
+        print(f"📩 Message from {from_number}: {message}")
 
-    reply = get_ai_response(message)
-    print(f"📨 Message: {reply}")
+        reply = get_ai_response(message)
+        print(f"📨 Message: {reply}")
 
-    send_whatsapp_message(from_number, reply)
+        send_whatsapp_message(from_number, reply)
 
-    return JSONResponse(content={"status": "success"})
+        return JSONResponse(content={"status": "success"})
 
-@app.get("/test-send")
-def test_send():
-    send_whatsapp_message("whatsapp:+919539665011", "Hello! This is a test from your WhatsApp bot.")
-    return {"status": "test message sent"}
+    except Exception as e:
+        print("❌ Error in /webhook:", str(e))
+        return JSONResponse(status_code=500, content={"status": "error", "message": str(e)})
+
+
+@app.get("/")
+def health_check():
+    return {"status": "OK"}
+
